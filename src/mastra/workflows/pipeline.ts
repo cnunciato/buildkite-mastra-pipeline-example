@@ -3,20 +3,6 @@ import { Pipeline } from "@buildkite/buildkite-sdk";
 import { execSync, spawn } from "node:child_process";
 import { z } from "zod";
 
-// function addPipelineStep(step: number) {
-//     const pipeline = new Pipeline();
-
-//     pipeline.addStep({
-//         label: `:wave: Hi from step${step}!`,
-//         command: `echo 'Hi from step${step}!'`,
-//     });
-
-//     return execSync("buildkite-agent pipeline upload", {
-//         input: pipeline.toYAML(),
-//         encoding: "utf8",
-//     }).trim();
-// }
-
 async function addPipelineStep(step: number): Promise<string> {
     const pipeline = new Pipeline();
 
@@ -27,31 +13,16 @@ async function addPipelineStep(step: number): Promise<string> {
 
     return new Promise((resolve, reject) => {
         const child = spawn("buildkite-agent", ["pipeline", "upload"], {
-            stdio: ["pipe", "pipe", "pipe"], // stdin, stdout, stderr
+            stdio: ["pipe", "inherit", "inherit"], // stdin piped, stdout/stderr inherited
         });
 
-        let output = "";
-        let error = "";
-
-        child.stdout.on("data", chunk => {
-            output += chunk.toString();
-        });
-
-        child.stderr.on("data", chunk => {
-            error += chunk.toString();
-        });
-
+        child.on("error", reject);
         child.on("close", code => {
-            if (code === 0) {
-                resolve(output.trim());
-            } else {
-                reject(new Error(error || `Exited with code ${code}`));
-            }
+            if (code === 0) resolve(`step${step} uploaded`);
+            else reject(new Error(`buildkite-agent exited with code ${code}`));
         });
 
-        // send pipeline YAML to stdin
-        child.stdin.write(pipeline.toYAML());
-        child.stdin.end();
+        child.stdin.end(pipeline.toYAML());
     });
 }
 
