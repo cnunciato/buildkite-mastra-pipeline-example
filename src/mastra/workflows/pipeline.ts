@@ -13,16 +13,31 @@ async function addPipelineStep(step: number): Promise<string> {
 
     return new Promise((resolve, reject) => {
         const child = spawn("buildkite-agent", ["pipeline", "upload"], {
-            stdio: ["pipe", "inherit", "inherit"], // stdin piped, stdout/stderr inherited
+            stdio: ["pipe", "pipe", "pipe"], // stdin, stdout, stderr
         });
 
-        child.on("error", reject);
+        let output = "";
+        let error = "";
+
+        child.stdout.on("data", chunk => {
+            output += chunk.toString();
+        });
+
+        child.stderr.on("data", chunk => {
+            error += chunk.toString();
+        });
+
         child.on("close", code => {
-            if (code === 0) resolve(`step${step} uploaded`);
-            else reject(new Error(`buildkite-agent exited with code ${code}`));
+            if (code === 0) {
+                resolve(output.trim());
+            } else {
+                reject(new Error(error || `Exited with code ${code}`));
+            }
         });
 
-        child.stdin.end(pipeline.toYAML());
+        // send pipeline YAML to stdin
+        child.stdin.write(pipeline.toYAML());
+        child.stdin.end();
     });
 }
 
@@ -31,7 +46,9 @@ const step1 = createStep({
     inputSchema: z.string(),
     outputSchema: z.string(),
     execute: async () => {
-        return addPipelineStep(1);
+        const output = await addPipelineStep(1);
+        console.log({ output });
+        return output;
     },
 });
 
@@ -40,7 +57,9 @@ const step2 = createStep({
     inputSchema: z.string(),
     outputSchema: z.string(),
     execute: async () => {
-        return addPipelineStep(2);
+        const output = await addPipelineStep(2);
+        console.log({ output });
+        return output;
     },
 });
 
@@ -49,7 +68,9 @@ const step3 = createStep({
     inputSchema: z.string({}),
     outputSchema: z.string({}),
     execute: async () => {
-        return addPipelineStep(3);
+        const output = await addPipelineStep(3);
+        console.log({ output });
+        return output;
     },
 });
 
