@@ -1,0 +1,4 @@
+steps:
+  - command: |
+      npm install
+      npm run pipeline
