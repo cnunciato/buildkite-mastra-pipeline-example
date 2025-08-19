@@ -1,5 +1,5 @@
 import { createStep, createWorkflow } from "@mastra/core/workflows";
-import { Pipeline } from "./util";
+import { Pipeline } from "./mock";
 import { z } from "zod";
 
 const step1 = createStep({
