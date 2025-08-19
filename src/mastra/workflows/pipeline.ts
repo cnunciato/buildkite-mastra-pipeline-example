@@ -67,9 +67,7 @@ const step1 = createStep({
     outputSchema: z.string(),
     execute: async () => {
         await uploadStep(1);
-        const result = await waitForStepResult(1);
-
-        return result;
+        return await waitForStepResult(1);
     },
 });
 
@@ -95,13 +93,7 @@ const step3 = createStep({
     outputSchema: z.string({}),
     execute: async () => {
         await uploadStep(3);
-        const result = await waitForStepResult(3);
-
-        if (result === "success") {
-            uploadStep(4);
-        }
-
-        return result;
+        return await waitForStepResult(3);
     },
 });
 
