@@ -14,6 +14,7 @@ export class Pipeline extends BuildkitePipeline {
     }
 
     addStep(step: CommandStep) {
+        console.log(`--- Adding step for pipeline ${this.id}`);
         const commands = Array.isArray(step.commands) ? step.commands : [step.command];
 
         commands.push(
@@ -21,10 +22,16 @@ export class Pipeline extends BuildkitePipeline {
             `buildkite-agent meta-data set "${this.key}" "success"`,
         );
 
+        super.addStep({
+            label: step.label,
+            command: commands.join(" && "),
+        });
+
         return this;
     }
 
     async upload() {
+        console.log(`--- Uploading pipeline ${this.id}`);
         return new Promise((resolve, reject) => {
             const child = spawn("buildkite-agent", ["pipeline", "upload"], {
                 stdio: ["pipe", "pipe", "pipe"],
@@ -47,6 +54,8 @@ export class Pipeline extends BuildkitePipeline {
     }
 
     async complete(): Promise<"success" | "error"> {
+        console.log(`--- Waiting for pipeline ${this.id}`);
+
         while (true) {
             try {
                 const result = await this.getMetadata();
