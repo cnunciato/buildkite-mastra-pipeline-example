@@ -14,6 +14,7 @@ const step1 = createStep({
             command: `echo 'Hi from step1!'`,
         });
 
+        await pipeline.upload();
         const result = await pipeline.complete();
         return result;
     },
@@ -31,6 +32,7 @@ const step2 = createStep({
             command: `echo 'Hi from step2!'`,
         });
 
+        await pipeline.upload();
         const result = await pipeline.complete();
 
         if (result === "success") {
@@ -58,6 +60,7 @@ const step3 = createStep({
             command: `echo 'Hi from step13'`,
         });
 
+        await pipeline.upload();
         const result = await pipeline.complete();
         return result;
     },
