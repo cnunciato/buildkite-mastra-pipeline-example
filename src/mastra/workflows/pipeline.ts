@@ -33,9 +33,9 @@ async function uploadStep(step: number): Promise<string> {
         label: `:wave: Hi from step${step}!`,
         commands: [
             `echo 'Hi from step${step}!'`,
-            "sleep 10",
 
             // Set the "success" of this step.
+            `sleep 10`,
             `buildkite-agent meta-data set "step${step}Result" "success"`,
         ],
     });
@@ -66,10 +66,9 @@ const step1 = createStep({
     inputSchema: z.string(),
     outputSchema: z.string(),
     execute: async () => {
-        const output = await uploadStep(1);
+        await uploadStep(1);
         const result = await waitForStepResult(1);
-        console.log(`--- Step 1 result`);
-        console.log({ result });
+
         return result;
     },
 });
@@ -79,10 +78,13 @@ const step2 = createStep({
     inputSchema: z.string(),
     outputSchema: z.string(),
     execute: async () => {
-        const output = await uploadStep(2);
+        await uploadStep(2);
         const result = await waitForStepResult(2);
-        console.log(`--- Step 2 result`);
-        console.log({ result });
+
+        if (result === "success") {
+            uploadStep(4);
+        }
+
         return result;
     },
 });
@@ -92,10 +94,13 @@ const step3 = createStep({
     inputSchema: z.string({}),
     outputSchema: z.string({}),
     execute: async () => {
-        const output = await uploadStep(3);
+        await uploadStep(3);
         const result = await waitForStepResult(3);
-        console.log(`--- Step 3 result`);
-        console.log({ result });
+
+        if (result === "success") {
+            uploadStep(4);
+        }
+
         return result;
     },
 });
