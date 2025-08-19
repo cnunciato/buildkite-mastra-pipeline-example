@@ -30,7 +30,7 @@ export class Pipeline extends BuildkitePipeline {
         return this;
     }
 
-    async upload() {
+    async upload(): Promise<number> {
         console.log(`--- Uploading pipeline ${this.id}`);
         return new Promise((resolve, reject) => {
             const child = spawn("buildkite-agent", ["pipeline", "upload"], {
@@ -42,11 +42,7 @@ export class Pipeline extends BuildkitePipeline {
 
             child.stdout.on("data", chunk => (output += chunk.toString()));
             child.stderr.on("data", chunk => (error += chunk.toString()));
-            child.on("close", code =>
-                code === 0
-                    ? resolve(output.trim())
-                    : reject(new Error(error || `Exited with code ${code}`)),
-            );
+            child.on("close", code => (code === 0 ? resolve(code) : reject(code)));
 
             child.stdin.write(this.toYAML());
             child.stdin.end();
