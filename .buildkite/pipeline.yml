@@ -1,5 +1,5 @@
 steps:
-  - label: ":gear: Assemble the pipeline"
+  - label: ":gear: Assemble the workflow"
     command: |
       npm install
       npm run pipeline
