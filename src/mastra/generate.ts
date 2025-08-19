@@ -6,7 +6,7 @@ try {
         inputData: "Some input",
     });
 
-    console.log("--- Getting result");
+    console.log("--- Writing results");
     console.log({ result });
 
     process.exit(0);
