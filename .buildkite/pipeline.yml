@@ -1,5 +1,5 @@
-agents:
-  queue: hosted-macos
+# agents:
+#   queue: hosted-macos
 steps:
   - label: ":gear: Assemble the pipeline"
     command: |
