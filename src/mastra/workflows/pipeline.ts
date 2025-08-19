@@ -12,7 +12,7 @@ async function getMetadata(key: string): Promise<string> {
     });
 }
 
-async function waitForStepResult(step: number, delay = 2000): Promise<string> {
+async function waitForStepResult(step: number, delay = 5000): Promise<string> {
     while (true) {
         try {
             const result = await getMetadata(`step${step}Result`);
@@ -33,6 +33,7 @@ async function uploadStep(step: number): Promise<string> {
         label: `:wave: Hi from step${step}!`,
         commands: [
             `echo 'Hi from step${step}!'`,
+            "sleep 10",
 
             // Set the "success" of this step.
             `buildkite-agent meta-data set "step${step}Result" "success"`,
