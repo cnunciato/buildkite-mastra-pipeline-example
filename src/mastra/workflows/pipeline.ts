@@ -42,6 +42,9 @@ const step2 = createStep({
                 label: ":wave: Hi from step4",
                 command: `echo 'Hi from step4!'`,
             });
+
+            await pipeline.upload();
+            await pipeline.complete();
         }
 
         return result;
