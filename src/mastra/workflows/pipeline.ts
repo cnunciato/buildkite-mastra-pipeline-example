@@ -39,8 +39,8 @@ const step2 = createStep({
             const pipeline = new Pipeline();
 
             pipeline.addStep({
-                label: ":wave: Hi from step4",
-                command: `echo 'Hi from step4!'`,
+                label: ":point_right: I'm a follow-up from step 2!",
+                command: `echo 'I'm a follow-up from step 2!'`,
             });
 
             await pipeline.upload();
@@ -60,7 +60,7 @@ const step3 = createStep({
 
         pipeline.addStep({
             label: ":wave: Hi from step3",
-            command: `echo 'Hi from step13'`,
+            command: `echo 'Hi from step3'`,
         });
 
         await pipeline.upload();
