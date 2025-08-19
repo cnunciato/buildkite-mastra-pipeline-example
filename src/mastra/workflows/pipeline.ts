@@ -26,10 +26,11 @@ async function waitForStepResult(step: number, delay = 5000): Promise<string> {
     }
 }
 
-async function uploadStep(step: number): Promise<string> {
+async function uploadStep(step: number, parent?: number): Promise<string> {
     const pipeline = new Pipeline();
 
     pipeline.addStep({
+        id: `step${step}`,
         label: `:wave: Hi from step${step}!`,
         commands: [
             `echo 'Hi from step${step}!'`,
@@ -38,6 +39,7 @@ async function uploadStep(step: number): Promise<string> {
             `sleep 10`,
             `buildkite-agent meta-data set "step${step}Result" "success"`,
         ],
+        depends_on: parent ? `step${parent}` : undefined,
     });
 
     return new Promise((resolve, reject) => {
@@ -80,7 +82,7 @@ const step2 = createStep({
         const result = await waitForStepResult(2);
 
         if (result === "success") {
-            uploadStep(4);
+            uploadStep(4, 2);
         }
 
         return result;
