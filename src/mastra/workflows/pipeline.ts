@@ -40,7 +40,7 @@ const step2 = createStep({
 
             pipeline.addStep({
                 label: ":point_right: I'm a follow-up from step 2!",
-                command: `echo 'I'm a follow-up from step 2!'`,
+                command: "echo 'I'm a follow-up from step 2!",
             });
 
             await pipeline.upload();

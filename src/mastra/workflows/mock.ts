@@ -24,7 +24,7 @@ export class Pipeline extends BuildkitePipeline {
 
         super.addStep({
             label: step.label,
-            command: commands.join(" &&"),
+            command: commands.join(" && "),
         });
 
         return this;
