@@ -1,5 +1,5 @@
 import { Pipeline as BuildkitePipeline, CommandStep, PipelineStep } from "@buildkite/buildkite-sdk";
-import * as short from "short-uuid";
+import short from "short-uuid";
 import { spawn, exec } from "node:child_process";
 
 export class Pipeline extends BuildkitePipeline {
