@@ -1,41 +1,60 @@
 import { createStep, createWorkflow } from "@mastra/core/workflows";
 import { Pipeline } from "@buildkite/buildkite-sdk";
-import { execSync, spawn } from "node:child_process";
+import { spawn, exec } from "node:child_process";
 import { z } from "zod";
 
-async function addPipelineStep(step: number): Promise<string> {
+async function getMetadata(key: string): Promise<string> {
+    return new Promise((resolve, reject) => {
+        exec(`buildkite-agent meta-data get "${key}"`, { encoding: "utf8" }, (err, stdout) => {
+            if (err) return reject(err);
+            resolve(stdout.trim());
+        });
+    });
+}
+
+async function waitForStepResult(step: number, delay = 2000): Promise<string> {
+    while (true) {
+        try {
+            const result = await getMetadata(`step${step}Result`);
+            if (result) {
+                return result;
+            }
+        } catch {
+            // Retry.
+        }
+        await new Promise(r => setTimeout(r, delay));
+    }
+}
+
+async function uploadStep(step: number): Promise<string> {
     const pipeline = new Pipeline();
 
     pipeline.addStep({
         label: `:wave: Hi from step${step}!`,
-        command: `echo 'Hi from step${step}!'`,
+        commands: [
+            `echo 'Hi from step${step}!'`,
+
+            // Set the "success" of this step.
+            `buildkite-agent meta-data set "step${step}Result" "success"`,
+        ],
     });
 
     return new Promise((resolve, reject) => {
         const child = spawn("buildkite-agent", ["pipeline", "upload"], {
-            stdio: ["pipe", "pipe", "pipe"], // stdin, stdout, stderr
+            stdio: ["pipe", "pipe", "pipe"],
         });
 
         let output = "";
         let error = "";
 
-        child.stdout.on("data", chunk => {
-            output += chunk.toString();
-        });
+        child.stdout.on("data", chunk => (output += chunk.toString()));
+        child.stderr.on("data", chunk => (error += chunk.toString()));
+        child.on("close", code =>
+            code === 0
+                ? resolve(output.trim())
+                : reject(new Error(error || `Exited with code ${code}`)),
+        );
 
-        child.stderr.on("data", chunk => {
-            error += chunk.toString();
-        });
-
-        child.on("close", code => {
-            if (code === 0) {
-                resolve(output.trim());
-            } else {
-                reject(new Error(error || `Exited with code ${code}`));
-            }
-        });
-
-        // send pipeline YAML to stdin
         child.stdin.write(pipeline.toYAML());
         child.stdin.end();
     });
@@ -46,9 +65,11 @@ const step1 = createStep({
     inputSchema: z.string(),
     outputSchema: z.string(),
     execute: async () => {
-        const output = await addPipelineStep(1);
-        console.log({ output });
-        return output;
+        const output = await uploadStep(1);
+        const result = await waitForStepResult(1);
+        console.log(`--- Step 1 result`);
+        console.log({ result });
+        return result;
     },
 });
 
@@ -57,9 +78,11 @@ const step2 = createStep({
     inputSchema: z.string(),
     outputSchema: z.string(),
     execute: async () => {
-        const output = await addPipelineStep(2);
-        console.log({ output });
-        return output;
+        const output = await uploadStep(2);
+        const result = await waitForStepResult(2);
+        console.log(`--- Step 2 result`);
+        console.log({ result });
+        return result;
     },
 });
 
@@ -68,9 +91,11 @@ const step3 = createStep({
     inputSchema: z.string({}),
     outputSchema: z.string({}),
     execute: async () => {
-        const output = await addPipelineStep(3);
-        console.log({ output });
-        return output;
+        const output = await uploadStep(3);
+        const result = await waitForStepResult(3);
+        console.log(`--- Step 3 result`);
+        console.log({ result });
+        return result;
     },
 });
 
@@ -79,6 +104,5 @@ export const pipeline = createWorkflow({
     inputSchema: z.string({}),
     outputSchema: z.string({}),
 })
-    // Run these steps in parallel.
     .parallel([step1, step2, step3])
     .commit();
