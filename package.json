@@ -30,6 +30,7 @@
         "@types/node": "^24.3.0",
         "mastra": "^0.10.21",
         "prettier": "^3.6.2",
+        "short-uuid": "^5.2.0",
         "typescript": "^5.9.2"
     }
 }
